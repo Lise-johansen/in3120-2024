@@ -20,6 +20,9 @@ def assignment_a_suite() -> unittest.TestSuite:
     return build_test_suite(["TestInMemoryInvertedIndexWithoutCompression",
                              "TestPostingsMerger", "TestBooleanSearchEngine"])
 
+def assignment_me_suite() -> unittest.TestSuite: # delme
+    return build_test_suite(["TestInMemoryInvertedIndexWithoutCompression" ])
+
 def assignment_b_1_suite() -> unittest.TestSuite:
     return build_test_suite(["TestSuffixArray", "TestTrie", "TestStringFinder"])
 
@@ -62,6 +65,7 @@ def assignment_x_suite() -> unittest.TestSuite:
 def main():
     mappings = {
         "a":   assignment_a_suite,
+        "me": assignment_me_suite, # delme
         "b-1": assignment_b_1_suite,
         "b-2": assignment_b_2_suite,
         "c-1": assignment_c_1_suite,
