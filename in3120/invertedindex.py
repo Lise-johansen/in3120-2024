@@ -112,12 +112,14 @@ class InMemoryInvertedIndex(InvertedIndex):
         """
     def _build_index(self, fields: Iterable[str], compressed: bool) -> None:
         
-        # Iterate though the docs, get doc_id
-        for doc in self._corpus:  
+        # Iterate though the docs, get doc_id and set counter
+        for doc in sorted(iter(self._corpus), key=lambda doc: doc.get_document_id()):  
             doc_id = doc.get_document_id()
+               
+            # Counter for term frequency
             term_freq_counter = Counter()
-            
-            # Go though the fileds in doc tokenize term
+
+            # Go though the fileds in doc tokenize 
             for field in fields:
                 tokens = self._tokenizer.tokens(doc.get_field(field, ""))
 
@@ -125,17 +127,14 @@ class InMemoryInvertedIndex(InvertedIndex):
                 for token in tokens:
                     normalize_token = self._normalizer.normalize(token[0])
                     term_freq_counter.update((normalize_token,))
+            
 
+            # Add terms to dict and posting list
             for term, freq in term_freq_counter.items():
                 # Add to inverted index and posting list
                 term_id = self._add_to_dictionary(term)
                 # print(term_id, term, freq, doc_id)
                 list_l = self._append_to_posting_list(term_id, doc_id, freq, compressed)
-            
-        # for post in self._posting_lists:
-        #     # print(post)
-        #     for doc in post:
-        #         print(doc)
             
         # raise NotImplementedError("You need to implement this as part of the obligatory assignment.")
 
@@ -165,7 +164,7 @@ class InMemoryInvertedIndex(InvertedIndex):
             self._posting_lists.append(posting_list)
 
         else:
-            # Existing posting list
+            # Insert new posting into the sorted position
             posting_list = self._posting_lists[term_id]
 
         # Create new posting instance
@@ -173,7 +172,7 @@ class InMemoryInvertedIndex(InvertedIndex):
 
         # Append posting to posting list
         posting_list.append_posting(new_posting)
-        
+
         # raise NotImplementedError("You need to implement this as part of the obligatory assignment.")
 
     def _finalize_index(self):

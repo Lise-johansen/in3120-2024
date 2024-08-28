@@ -21,7 +21,7 @@ def assignment_a_suite() -> unittest.TestSuite:
                              "TestPostingsMerger", "TestBooleanSearchEngine"])
 
 def assignment_me_suite() -> unittest.TestSuite: # delme
-    return build_test_suite(["TestInMemoryInvertedIndexWithoutCompression" ])
+    return build_test_suite(["TestIMadeThisDELME" ])
 
 def assignment_b_1_suite() -> unittest.TestSuite:
     return build_test_suite(["TestSuffixArray", "TestTrie", "TestStringFinder"])
