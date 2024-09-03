@@ -8,7 +8,7 @@ import collections.abc
 import csv
 from abc import abstractmethod
 from json import loads
-from typing import Any, List, Dict, Callable, Optional, Set, Iterable, Iterator ,Union
+from typing import Any, List, Dict, Callable, Optional, Set, Iterable, Iterator, Union
 from xml.dom.minidom import parse
 from .document import Document, InMemoryDocument
 from .documentpipeline import DocumentPipeline
@@ -28,7 +28,7 @@ class Corpus(collections.abc.Iterable):
         return self.get_document(document_id)
 
     @abstractmethod
-    def __iter__(self) -> Iterator[Document]: # added 
+    def __iter__(self) -> Iterator[Document]:  # added
         raise NotImplementedError()
 
     @abstractmethod
@@ -55,10 +55,12 @@ class InMemoryCorpus(Corpus):
     Document identifiers are assigned on a first-come first-serve basis.
     """
 
-    def __init__(self,
-                 filenames: Optional[Union[str, Iterable[str]]] = None,
-                 annotations: Optional[Union[Dict[str, Any], Iterable[Dict[str, Any]]]] = None,
-                 pipeline: Optional[DocumentPipeline] = None):
+    def __init__(
+        self,
+        filenames: Optional[Union[str, Iterable[str]]] = None,
+        annotations: Optional[Union[Dict[str, Any], Iterable[Dict[str, Any]]]] = None,
+        pipeline: Optional[DocumentPipeline] = None,
+    ):
         """
         The client can, optionally, supply a single filename or a list of filenames.
 
@@ -103,7 +105,7 @@ class InMemoryCorpus(Corpus):
             else:
                 raise IOError(f"Filename has unsupported extension: {filename}")
 
-    def __iter__(self) -> Iterator[InMemoryDocument]: # inMemoryDoc or Just Doc??
+    def __iter__(self) -> Iterator[InMemoryDocument]:  # inMemoryDoc or Just Doc??
         return iter(self._documents)
 
     def size(self) -> int:
@@ -122,7 +124,9 @@ class InMemoryCorpus(Corpus):
         self._documents.append(document)
         return self
 
-    def split(self, field_name: str, splitter: Optional[Callable[[Any], List[Any]]] = None) -> Dict[Any, InMemoryCorpus]:
+    def split(
+        self, field_name: str, splitter: Optional[Callable[[Any], List[Any]]] = None
+    ) -> Dict[Any, InMemoryCorpus]:
         """
         Divides the corpus up into multiple corpora, according to the value(s) of the
         named field. I.e., splits the corpus up into several smaller corpora.
@@ -156,7 +160,9 @@ class InMemoryCorpus(Corpus):
                     merged.add_document(document, False)
         return merged
 
-    def __load_text(self, filename: str, annotation: Dict[str, Any], pipeline: DocumentPipeline) -> None:
+    def __load_text(
+        self, filename: str, annotation: Dict[str, Any], pipeline: DocumentPipeline
+    ) -> None:
         """
         Loads documents from the given UTF-8 encoded text file. One document per line,
         tab-separated fields. Empty lines are ignored. The first field gets named "body",
@@ -177,12 +183,15 @@ class InMemoryCorpus(Corpus):
                     self.add_document(document)
                     document_id += 1
 
-    def __load_xml(self, filename: str, annotation: Dict[str, Any], pipeline: DocumentPipeline) -> None:
+    def __load_xml(
+        self, filename: str, annotation: Dict[str, Any], pipeline: DocumentPipeline
+    ) -> None:
         """
         Loads documents from the given XML file. The schema is assumed to be
         simple <doc> nodes. Each <doc> node gets mapped to a single document field
         named "body".
         """
+
         def __get_text(nodes):
             data = []
             for node in nodes:
@@ -200,7 +209,13 @@ class InMemoryCorpus(Corpus):
                 self.add_document(document)
                 document_id += 1
 
-    def __load_csv_or_tsv(self, filename: str, delimiter: str, annotation: Dict[str, Any], pipeline: DocumentPipeline) -> None:
+    def __load_csv_or_tsv(
+        self,
+        filename: str,
+        delimiter: str,
+        annotation: Dict[str, Any],
+        pipeline: DocumentPipeline,
+    ) -> None:
         """
         Loads documents from the given UTF-8 encoded CSV file. One document per line.
         """
@@ -215,7 +230,9 @@ class InMemoryCorpus(Corpus):
                     self.add_document(document)
                     document_id += 1
 
-    def __load_json(self, filename: str, annotation: Dict[str, Any], pipeline: DocumentPipeline) -> None:
+    def __load_json(
+        self, filename: str, annotation: Dict[str, Any], pipeline: DocumentPipeline
+    ) -> None:
         """
         Loads documents from the given UTF-8 encoded JSON file. One document per line.
         Lines that do not start with "{" and end with "}" are ignored.
