@@ -19,7 +19,6 @@ class EditSearchEngine:
     Realizes a simple edit distance lookup engine, that, given a larger set of strings encoded
     in a trie, finds all strings in the trie that are close to a given query string in terms of edit
     distance.
-    
     See the paper "Tries for Approximate String Matching" by Shang and Merrett for details. This
     implementation assumes that we set an upper bound on the allowed edit distance (treating anything
     above this bound as infinity and non-retrievable), and that this upper bound is relatively small.
