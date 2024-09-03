@@ -167,7 +167,7 @@ class InMemoryInvertedIndex(InvertedIndex):
                 posting_list = CompressedInMemoryPostingList()
             else:
                 posting_list = InMemoryPostingList()
-            
+
             # Append posting list to posting lists
             self._posting_lists.append(posting_list)
 
@@ -188,7 +188,6 @@ class InMemoryInvertedIndex(InvertedIndex):
         if needed.
         """
         pass
-        # raise NotImplementedError("You need to implement this as part of the obligatory assignment.")
 
     def get_terms(self, buffer: str) -> Iterator[str]:
         # In a serious large-scale application there could be field-specific tokenizers.
@@ -204,7 +203,7 @@ class InMemoryInvertedIndex(InvertedIndex):
     def get_postings_iterator(self, term: str) -> Iterator[Posting]:
         """
         MY IMPLEMENTATION
-        
+
         """
         try:
             # Get term id from dict. and posting list
@@ -213,12 +212,10 @@ class InMemoryInvertedIndex(InvertedIndex):
 
             # Return iterator of posting list
             return iter(posting_list.get_iterator())
-        
+
         except KeyError:
-            # Return and empty iter if term not in dict. 
+            # Return and empty iter if term not in dict.
             return iter([])
-    
-        # raise NotImplementedError("You need to implement this as part of the obligatory assignment.")
 
     def get_document_frequency(self, term: str) -> int:
         """
@@ -233,7 +230,6 @@ class InMemoryInvertedIndex(InvertedIndex):
         except KeyError:
             return 0
 
-        # raise NotImplementedError("You need to implement this as part of the obligatory assignment.")
 
 class DummyInMemoryInvertedIndex(InMemoryInvertedIndex):
     """
