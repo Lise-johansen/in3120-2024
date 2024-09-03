@@ -1,6 +1,7 @@
 # pylint: disable=missing-module-docstring
 # pylint: disable=line-too-long
 
+
 class EditTable:
     """
     A simple representation of an edit table with unit edit costs, using Damerau-Levenshtein
