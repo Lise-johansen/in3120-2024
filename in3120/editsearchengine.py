@@ -76,7 +76,8 @@ class EditSearchEngine:
         scorers = {
             "negated": lambda d, q, c: -d,
             "normalized": lambda d, q, c: 1.0 - (d / (first_n + max(len(q), len(c)))),
-            "lopresti": lambda d, q, c: 1.0 / math.exp(d / (first_n + max(len(q), len(c)) - d)),
+            "lopresti": lambda d, q, c: 1.0
+            / math.exp(d / (first_n + max(len(q), len(c)) - d)),
         }
 
         # The selected scoring function to apply to candidate matches.
@@ -93,8 +94,22 @@ class EditSearchEngine:
 
         # Receives matches from the search, as they are found. The search aborts if the callback
         # returns False, i.e., when we have received sufficiently many candidate matches.
+
+        counter = 0
         def callback(distance: int, candidate: str, meta: Any) -> bool:
-            raise NotImplementedError("You need to implement this as part of the obligatory assignment.")
+            nonlocal counter
+
+            if counter >= candidate_count:
+                return False
+            
+            if distance <= upper_bound:
+                # print(candidate, distance, upper_bound)
+                score = scorer(distance, query, candidate)
+                sieve.sift(score, (distance, candidate, meta))
+                counter += 1
+
+                return True
+            return False
 
         # Search! We receive and sift results via the callback.
         if root:
@@ -104,8 +119,8 @@ class EditSearchEngine:
         for score, (distance, match, meta) in sieve.winners():
             yield {"score": score, "distance": distance, "match": head + match, "meta": meta}
 
-    def __dfs(self, node: Trie, level: int, table: EditTable,
-              upper_bound: int, callback: Callable[[float, str, Any], bool]) -> bool:
+    def __dfs(self, node: Trie, level: int, table: EditTable, upper_bound: int, 
+              callback: Callable[[float, str, Any], bool],) -> bool:
         """
         Does a recursive depth-first search in the trie, pruning away paths that cannot lead
         to matches with a sufficiently low edit cost. See paper by Shang and Merrett for a
@@ -119,4 +134,22 @@ class EditSearchEngine:
         reasonable lengths, but could merit a second look if we look to apply this to other
         use cases.
         """
-        raise NotImplementedError("You need to implement this as part of the obligatory assignment.")
+        if node.is_final():
+            if not callback(table.distance(), "".join(table._candidate), node.get_meta()):
+                return False
+         
+        # Go over the children
+        for candidata_char in node.transitions():
+            # Save the table 
+            if level < len(table._candidate):
+                original_char = table._candidate[level]
+            else:
+                original_char = "?"
+
+            table.update2(level, candidata_char)   
+            child = node.consume(candidata_char)
+            self.__dfs(child, level + 1, table, upper_bound, callback)
+
+            table._candidate[level] = original_char
+
+        return True

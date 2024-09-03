@@ -81,7 +81,14 @@ class InMemoryInvertedIndex(InvertedIndex):
     compression is currently not supported.
     """
 
-    def __init__(self, corpus: Corpus, fields: Iterable[str], normalizer: Normalizer, tokenizer: Tokenizer, compressed: bool = False):
+    def __init__(
+        self,
+        corpus: Corpus,
+        fields: Iterable[str],
+        normalizer: Normalizer,
+        tokenizer: Tokenizer,
+        compressed: bool = False,
+    ):
         self._corpus = corpus
         self._normalizer = normalizer
         self._tokenizer = tokenizer
@@ -90,8 +97,11 @@ class InMemoryInvertedIndex(InvertedIndex):
         self._build_index(fields, compressed)
 
     def __repr__(self):
-        return str({term: self._posting_lists[term_id] for term, term_id in self._dictionary})
+        return str(
+            {term: self._posting_lists[term_id] for term, term_id in self._dictionary}
+        )
 
+    def _build_index(self, fields: Iterable[str], compressed: bool) -> None:
         """
         MY IMPLEMENTATION
         Kicks off the indexing process. Basically implements a flavor of SPIMI indexing as described in
@@ -110,16 +120,15 @@ class InMemoryInvertedIndex(InvertedIndex):
         ranking. See https://nlp.stanford.edu/IR-book/html/htmledition/positional-indexes-1.html for
         further details.
         """
-    def _build_index(self, fields: Iterable[str], compressed: bool) -> None:
-        
+
         # Iterate though the docs, get doc_id and set counter
-        for doc in sorted(iter(self._corpus), key=lambda doc: doc.get_document_id()):  
+        for doc in sorted(iter(self._corpus), key=lambda doc: doc.get_document_id()):
             doc_id = doc.get_document_id()
-               
+
             # Counter for term frequency
             term_freq_counter = Counter()
 
-            # Go though the fileds in doc tokenize 
+            # Go though the fileds in doc tokenize
             for field in fields:
                 tokens = self._tokenizer.tokens(doc.get_field(field, ""))
 
@@ -127,16 +136,13 @@ class InMemoryInvertedIndex(InvertedIndex):
                 for token in tokens:
                     normalize_token = self._normalizer.normalize(token[0])
                     term_freq_counter.update((normalize_token,))
-            
 
             # Add terms to dict and posting list
             for term, freq in term_freq_counter.items():
                 # Add to inverted index and posting list
                 term_id = self._add_to_dictionary(term)
                 # print(term_id, term, freq, doc_id)
-                list_l = self._append_to_posting_list(term_id, doc_id, freq, compressed)
-            
-        # raise NotImplementedError("You need to implement this as part of the obligatory assignment.")
+                self._append_to_posting_list(term_id, doc_id, freq, compressed)
 
     def _add_to_dictionary(self, term: str) -> int:
         """
@@ -145,7 +151,9 @@ class InMemoryInvertedIndex(InvertedIndex):
         """
         return self._dictionary.add_if_absent(term)
 
-    def _append_to_posting_list(self, term_id: int, document_id: int, term_frequency: int, compressed: bool) -> None:
+    def _append_to_posting_list(
+        self, term_id: int, document_id: int, term_frequency: int, compressed: bool
+    ) -> None:
         """
         MY IMPLEMENTATION
         Appends a new posting to the right posting list. The posting lists
@@ -172,8 +180,6 @@ class InMemoryInvertedIndex(InvertedIndex):
 
         # Append posting to posting list
         posting_list.append_posting(new_posting)
-
-        # raise NotImplementedError("You need to implement this as part of the obligatory assignment.")
 
     def _finalize_index(self):
         """
@@ -237,16 +243,33 @@ class DummyInMemoryInvertedIndex(InMemoryInvertedIndex):
     index at hand then use that, otherwise we can create and use this dummy version.
     """
 
-    def __init__(self, corpus: Corpus, fields: Iterable[str], normalizer: Normalizer, tokenizer: Tokenizer):
-        self._document_frequencies: Dict[int, int] = {}  # Maps a term identifier to its document frequency.
+    def __init__(
+        self,
+        corpus: Corpus,
+        fields: Iterable[str],
+        normalizer: Normalizer,
+        tokenizer: Tokenizer,
+    ):
+        self._document_frequencies: Dict[int, int] = (
+            {}
+        )  # Maps a term identifier to its document frequency.
         super().__init__(corpus, fields, normalizer, tokenizer, False)
 
     def __repr__(self):
-        return str({term: self._document_frequencies[term_id] for term, term_id in self._dictionary})
+        return str(
+            {
+                term: self._document_frequencies[term_id]
+                for term, term_id in self._dictionary
+            }
+        )
 
-    def _append_to_posting_list(self, term_id: int, document_id: int, term_frequency: int, compressed: bool) -> None:
+    def _append_to_posting_list(
+        self, term_id: int, document_id: int, term_frequency: int, compressed: bool
+    ) -> None:
         # Actually, don't append to the posting list. Introduce a side-effect instead.
-        self._document_frequencies[term_id] = self._document_frequencies.get(term_id, 0) + 1
+        self._document_frequencies[term_id] = (
+            self._document_frequencies.get(term_id, 0) + 1
+        )
 
     def _finalize_index(self):
         # No posting lists!
@@ -272,7 +295,9 @@ class AccessLoggedInvertedIndex(InvertedIndex):
         that have been accessed. Facilitates testing.
         """
 
-        def __init__(self, term: str, accesses: List[Tuple[str, int]], wrapped: Iterator[Posting]):
+        def __init__(
+            self, term: str, accesses: List[Tuple[str, int]], wrapped: Iterator[Posting]
+        ):
             self._term = term
             self._accesses = accesses
             self._wrapped = wrapped
@@ -293,7 +318,9 @@ class AccessLoggedInvertedIndex(InvertedIndex):
         return self._wrapped.get_indexed_terms()
 
     def get_postings_iterator(self, term: str) -> Iterator[Posting]:
-        return __class__.AccessLoggedIterator(term, self._accesses, self._wrapped.get_postings_iterator(term))
+        return __class__.AccessLoggedIterator(
+            term, self._accesses, self._wrapped.get_postings_iterator(term)
+        )
 
     def get_document_frequency(self, term: str) -> int:
         return self._wrapped.get_document_frequency(term)

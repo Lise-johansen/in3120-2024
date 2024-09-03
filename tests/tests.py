@@ -47,4 +47,4 @@ from test_unigramtokenizer import TestUnigramTokenizer
 from test_binarylogisticregressionclassifier import TestBinaryLogisticRegressionClassifier
 from test_evaluationmetrics import TestEvaluationMetrics
 from test_pagerank import TestPageRank
-from test_postingsmerger import TestIMadeThisDELME # DELME, I made this
+from test_editsearchengine import TestIMadeThisDELME # DELME, I made this

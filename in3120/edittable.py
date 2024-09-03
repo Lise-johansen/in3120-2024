@@ -49,7 +49,10 @@ class EditTable:
         # Note that since we add an extra row and an extra columns, we will elsewhere
         # have to offset accordingly to align between table row/column indices and the
         # indices into the strings that logically correspond to each row/column.
-        self._table = [[self._default for j in range(len(self._candidate) + 1)] for i in range(len(self._query) + 1)]
+        self._table = [
+            [self._default for j in range(len(self._candidate) + 1)]
+            for i in range(len(self._query) + 1)
+        ]
 
         # Initialize with edit distances to the empty string, i.e., fill the row/column
         # we padded above.
@@ -84,7 +87,11 @@ class EditTable:
         width = 3
         header = " " + (" " * width) + "".join(f"{s:>{width}}" for s in self._candidate)
         row0 = " " + "".join(f"{str(v):>{width}}".format(v) for v in self._table[0])
-        rows = [f"{self._query[i]}" + "".join(f"{str(v):>{width}}".format(v) for v in self._table[i + 1]) for i in range(len(self._query))]
+        rows = [
+            f"{self._query[i]}"
+            + "".join(f"{str(v):>{width}}".format(v) for v in self._table[i + 1])
+            for i in range(len(self._query))
+        ]
         return "\n".join(["", header, row0] + rows)
 
     def update(self, j: int) -> int:
@@ -92,12 +99,31 @@ class EditTable:
         Updates all cells in the given table column, according to the Damerau-Levenshtein rule.
         Assumes unit edit costs for all edit operations, and that all columns to the left have
         already been computed.
-        
+
         Returns the minimum value in the updated table column. This corresponds to returning
         the minimal value of edit-distance(query[0:i], candidate[0:j]) found by varying over
         all the row indices i.
         """
-        raise NotImplementedError("You need to implement this as part of the obligatory assignment.")
+        for i in range(1, len(self._query) + 1):
+            if self._query[i - 1] == self._candidate[j - 1]:
+                cost = 0
+            else:
+                cost = 1
+
+            deletion = self._table[i - 1][j] + 1
+            insertion = self._table[i][j - 1] + 1
+            substitution = self._table[i - 1][j - 1] + cost
+
+            smallest_value = min((deletion, insertion, substitution))
+
+            if i > 2 and j > 2:
+                if self._query[i - 1] == self._candidate[j - 2]:
+                    transposition = self._table[i - 2][j - 2] + 1
+                    smallest_value = min((transposition, smallest_value))
+
+            self._table[i][j] = smallest_value
+
+        return smallest_value
 
     def update2(self, j: int, symbol: str) -> int:
         """
@@ -108,17 +134,25 @@ class EditTable:
         column index is just out of range. That way, the table is usable also by clients
         that need to deal with candidate strings longer than what was initially anticipated.
         """
-        raise NotImplementedError("You need to implement this as part of the obligatory assignment.")
+        if j >= len(self._candidate):
+            self.__extend(j - len(self._candidate) + 1 )
+
+        self._candidate[j] = symbol
+        for j_ in range(j , len(self._candidate)):
+            self.update(j_+1)
 
     def distance(self, j: int = -1) -> int:
         """
         Returns the edit distance between the query string and the candidate string.
         Defaults to looking at the SE-most cell in the table, i.e., the edit distance
         between the complete strings.
-        
+
         Only a prefix of the candidate string can be considered, if specified. That is,
         the caller is allowed to supply a column index and that way vary the W-E axis.
         """
+        if j == -1 and "?" in self._candidate:
+            j = self._candidate.index("?")
+
         return self._table[-1][j]
 
     def prefix(self, j: int) -> str:
@@ -127,3 +161,14 @@ class EditTable:
         returns candidate[0:j].
         """
         return "".join(self._candidate[0:j])
+
+
+if __name__ == "__main__":
+    test = EditTable("kitten", "sitting")
+    better_test = EditTable("relevant", "elephant")
+    new_test = EditTable("aleksander", "abbor?????")
+
+    print(test.stringify())
+    print(better_test.stringify())
+    print(new_test.stringify())
+

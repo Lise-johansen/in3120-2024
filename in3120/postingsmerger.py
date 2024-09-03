@@ -16,7 +16,9 @@ class PostingsMerger:
     """
 
     @staticmethod
-    def intersection(iter1: Iterator[Posting], iter2: Iterator[Posting]) -> Iterator[Posting]:
+    def intersection(
+        iter1: Iterator[Posting], iter2: Iterator[Posting]
+    ) -> Iterator[Posting]:
         """
         A generator that yields a simple AND(A, B) of two posting
         lists A and B, given iterators over these.
@@ -26,26 +28,23 @@ class PostingsMerger:
         """
         # Followed the pseudocode from the book (p. 48 figure 1.6)
         try:
-            p1 = next(iter1)
-            p2 = next(iter2)
-            
-            while True:
-                if p1.document_id == p2.document_id:
-                    yield p1
-                    p1 = next(iter1)
-                    p2 = next(iter2)
+            left = next(iter1)
+            right = next(iter2)
 
-                elif p1.document_id < p2.document_id:
-                    p1 = next(iter1)
+            while True:
+                if left.document_id == right.document_id:
+                    yield left
+                    left = next(iter1)
+                    right = next(iter2)
+
+                elif left.document_id < right.document_id:
+                    left = next(iter1)
 
                 else:
-                    p2 = next(iter2)
-
+                    right = next(iter2)
 
         except StopIteration:
             return
-
-        # raise NotImplementedError("You need to implement this as part of the obligatory assignment.")
 
     @staticmethod
     def union(iter1: Iterator[Posting], iter2: Iterator[Posting]) -> Iterator[Posting]:
@@ -56,60 +55,60 @@ class PostingsMerger:
         The posting lists are assumed sorted in increasing order according
         to the document identifiers.
         """
-       
+
         # Retrieve the first postings from the iterators, and check if the postings are empty
-        try:  
-            p1 = next(iter1)
+        try:
+            left = next(iter1)
         except StopIteration:
-            p1 = None
+            left = None
 
         try:
-            p2 = next(iter2)
+            right = next(iter2)
         except StopIteration:
-            p2 = None
+            right = None
 
-        # Loop through the postings as long as p1 nor p2 is None
-        while p1 is not None and p2 is not None:
+        # Loop through the postings as long as left nor right is None
+        while left is not None and right is not None:
             # Doc_id is the same, yield one of them and advanve both iterators
-            if p1.document_id == p2.document_id:
-                yield p1
+            if left.document_id == right.document_id:
+                yield left
                 try:
-                    p1 = next(iter1)
+                    left = next(iter1)
                 except StopIteration:
-                    p1 = None # Has to set to empty, since stupid. 
-                   
+                    left = None  # Has to set to empty, since stupid.
+
                 try:
-                    p2 = next(iter2)
+                    right = next(iter2)
                 except StopIteration:
-                    p2 = None 
-                  
+                    right = None
+
             # Advance the first list to it matches the second list
-            elif p1.document_id < p2.document_id:
-                yield p1
+            elif left.document_id < right.document_id:
+                yield left
                 try:
-                    p1 = next(iter1)
+                    left = next(iter1)
                 except StopIteration:
-                    p1 = None  
+                    left = None
             else:
-                yield p2
+                yield right
                 try:
-                    p2 = next(iter2)
+                    right = next(iter2)
                 except StopIteration:
-                    p2 = None
-                
+                    right = None
+
         # Yield the posting list that is not None, set to None in while loop. (Not a fan)
-        if p1 is not None:
-            yield p1
+        if left is not None:
+            yield left
             yield from iter1
 
-        if p2 is not None:
-            yield p2
+        if right is not None:
+            yield right
             yield from iter2
-      
-        # raise NotImplementedError("You need to implement this as part of the obligatory assignment.")
 
     @staticmethod
-    def difference(iter1: Iterator[Posting], iter2: Iterator[Posting]) -> Iterator[Posting]:
+    def difference(
+        iter1: Iterator[Posting], iter2: Iterator[Posting]
+    ) -> Iterator[Posting]:
         """
         A generator that yields a simple ANDNOT(A, B) of two posting
         lists A and B, given iterators over these.
@@ -119,43 +118,41 @@ class PostingsMerger:
         """
         # Check if empty
         try:
-            p1 = next(iter1)
+            left = next(iter1)
         except StopIteration:
-            p1 = None
+            left = None
         try:
-            p2 = next(iter2)
+            right = next(iter2)
         except StopIteration:
-            p2 = None
-    
-        while p1 is not None and p2 is not None:
-            if p1.document_id == p2.document_id:
+            right = None
+
+        while left is not None and right is not None:
+            if left.document_id == right.document_id:
 
                 # Trying to iterate to the next posting
                 try:
-                    p1 = next(iter1)
+                    left = next(iter1)
                 except StopIteration:
-                    p1 = None
+                    left = None
                 try:
-                    p2 = next(iter2)
+                    right = next(iter2)
                 except StopIteration:
-                    p2 = None
+                    right = None
 
-            # Never intrested of yielding p2. So only yield p1 and move along. 
-            elif p1.document_id < p2.document_id:
-                yield p1
+            # Never intrested of yielding right. So only yield left and move along.
+            elif left.document_id < right.document_id:
+                yield left
                 try:
-                    p1 = next(iter1)
+                    left = next(iter1)
                 except StopIteration:
-                    p1 = None
+                    left = None
             else:
                 try:
-                    p2 = next(iter2)
+                    right = next(iter2)
                 except StopIteration:
-                    p2 = None
+                    right = None
 
-        # Yield the rest of the postings (for that time p2 is shorter than p1)
-        if p1 is not None:
-            yield p1
+        # Yield the rest of the postings (for that time right is shorter than left)
+        if left is not None:
+            yield left
             yield from iter1
-                        
-        # raise NotImplementedError("You need to implement this as part of the obligatory assignment.")

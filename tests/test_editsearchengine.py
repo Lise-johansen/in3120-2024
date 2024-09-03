@@ -6,6 +6,31 @@ import unittest
 from context import in3120
 
 
+class TestIMadeThisDELME(unittest.TestCase): #delme
+
+    def setUp(self):
+        normalizer = in3120.SimpleNormalizer()
+        tokenizer = in3120.SimpleTokenizer()
+        trie = in3120.Trie()
+        trie.add2([("aleksander", "rednaskela")], normalizer, tokenizer)
+        trie.add(["abba", "ørret", "abbor"], normalizer, tokenizer)
+        trie.add(["alleksander", "allekander", "aleksanderrrr"], normalizer, tokenizer)
+        self._engine = in3120.EditSearchEngine(trie, normalizer, tokenizer)
+
+    def test_exact_match(self): #delme
+        options = {"upper_bound":0}
+        results = list(self._engine.evaluate("aleksander", options))
+        self.assertEqual(1, len(results))
+        self.assertEqual(4, len(results[0]))
+        self.assertTrue("score" in results[0])
+        self.assertTrue("distance" in results[0])
+        self.assertTrue("match" in results[0])
+        self.assertTrue("meta" in results[0])
+        self.assertEqual("aleksander", results[0]["match"])
+        self.assertEqual("rednaskela", results[0]["meta"])
+        self.assertEqual(0, results[0]["distance"])
+        self.assertAlmostEqual(1.0, results[0]["score"], 5)
+
 class TestEditSearchEngine(unittest.TestCase):
 
     def setUp(self):
