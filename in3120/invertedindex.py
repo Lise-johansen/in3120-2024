@@ -120,28 +120,20 @@ class InMemoryInvertedIndex(InvertedIndex):
         ranking. See https://nlp.stanford.edu/IR-book/html/htmledition/positional-indexes-1.html for
         further details.
         """
-
-        # Iterate though the docs, get doc_id and set counter
-        for doc in sorted(iter(self._corpus), key=lambda doc: doc.get_document_id()):
+        for doc in self._corpus:
             doc_id = doc.get_document_id()
 
             # Counter for term frequency
             term_freq_counter = Counter()
-
-            # Go though the fileds in doc tokenize
-            for field in fields:
-                tokens = self._tokenizer.tokens(doc.get_field(field, ""))
-
-                # Normilaze the token
-                for token in tokens:
-                    normalize_token = self._normalizer.normalize(token[0])
-                    term_freq_counter.update((normalize_token,))
+            
+            for cell in (doc.get_field(f, "") for f in fields):
+                for term in self.get_terms(cell):
+                    term_freq_counter.update((term,))
 
             # Add terms to dict and posting list
             for term, freq in term_freq_counter.items():
                 # Add to inverted index and posting list
                 term_id = self._add_to_dictionary(term)
-                # print(term_id, term, freq, doc_id)
                 self._append_to_posting_list(term_id, doc_id, freq, compressed)
 
     def _add_to_dictionary(self, term: str) -> int:

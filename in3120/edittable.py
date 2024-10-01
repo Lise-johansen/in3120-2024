@@ -104,6 +104,8 @@ class EditTable:
         Returns the minimum value in the updated table column. This corresponds to returning
         the minimal value of edit-distance(query[0:i], candidate[0:j]) found by varying over
         all the row indices i.
+
+        My implementation
         """
         for i in range(1, len(self._query) + 1):
             if self._query[i - 1] == self._candidate[j - 1]:
@@ -134,13 +136,15 @@ class EditTable:
         Additionally, this method appends additional columns to the table if the supplied
         column index is just out of range. That way, the table is usable also by clients
         that need to deal with candidate strings longer than what was initially anticipated.
+
+        My implementation
         """
         if j >= len(self._candidate):
             self.__extend(j - len(self._candidate) + 1 )
 
         self._candidate[j] = symbol
-        for j_ in range(j , len(self._candidate)):
-            self.update(j_+1)
+        for inner_j in range(j , len(self._candidate)):
+            self.update(inner_j + 1)
 
     def distance(self, j: int = -1) -> int:
         """
@@ -150,6 +154,8 @@ class EditTable:
 
         Only a prefix of the candidate string can be considered, if specified. That is,
         the caller is allowed to supply a column index and that way vary the W-E axis.
+
+        My implementation
         """
         if j == -1 and "?" in self._candidate:
             j = self._candidate.index("?")
@@ -172,4 +178,3 @@ if __name__ == "__main__":
     print(test.stringify())
     print(better_test.stringify())
     print(new_test.stringify())
-

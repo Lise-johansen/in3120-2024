@@ -93,19 +93,19 @@ class EditSearchEngine:
 
         # Receives matches from the search, as they are found. The search aborts if the callback
         # returns False, i.e., when we have received sufficiently many candidate matches.
+        # My implementation until line 112.
 
-        counter = 0
+        counter = 0 # max number of candidates
         def callback(distance: int, candidate: str, meta: Any) -> bool:
             nonlocal counter
 
             if counter >= candidate_count:
                 return False
-            
+
             if distance <= upper_bound:
-                # print(candidate, distance, upper_bound)
                 score = scorer(distance, query, candidate)
                 sieve.sift(score, (distance, candidate, meta))
-                counter += 1
+                counter += 1 # Not yet at the max number of candidates
 
                 return True
             return False
@@ -118,8 +118,8 @@ class EditSearchEngine:
         for score, (distance, match, meta) in sieve.winners():
             yield {"score": score, "distance": distance, "match": head + match, "meta": meta}
 
-    def __dfs(self, node: Trie, level: int, table: EditTable, upper_bound: int, 
-              callback: Callable[[float, str, Any], bool],) -> bool:
+    def __dfs(self, node: Trie, level: int, table: EditTable, upper_bound: int,
+            callback: Callable[[float, str, Any], bool],) -> bool:
         """
         Does a recursive depth-first search in the trie, pruning away paths that cannot lead
         to matches with a sufficiently low edit cost. See paper by Shang and Merrett for a
@@ -132,20 +132,23 @@ class EditSearchEngine:
         for this search is to consult a simple spellchecking dictionary of strings all having
         reasonable lengths, but could merit a second look if we look to apply this to other
         use cases.
+
+        My implementation
         """
         if node.is_final():
             if not callback(table.distance(), "".join(table._candidate), node.get_meta()):
                 return False
-         
+
         # Go over the children
         for candidata_char in node.transitions():
-            # Save the table 
+            # Save the table
             if level < len(table._candidate):
                 original_char = table._candidate[level]
             else:
                 original_char = "?"
 
-            table.update2(level, candidata_char)   
+            # Add the candidate character to the table and resume the search
+            table.update2(level, candidata_char)
             child = node.consume(candidata_char)
             self.__dfs(child, level + 1, table, upper_bound, callback)
 
