@@ -48,7 +48,12 @@ class TestInMemoryInvertedIndexWithCompression(unittest.TestCase):
             if statistic.traceback[0].filename == inspect.getfile(in3120.InMemoryInvertedIndex):
                 size_compressed = statistic.size_diff
         compression_ratio = size_uncompressed / size_compressed
+
+        print(f"Ratio:{compression_ratio}")
         self.assertGreater(compression_ratio, 13)
+
+    
+    
 
 
 if __name__ == '__main__':

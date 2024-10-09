@@ -80,6 +80,7 @@ class InMemoryInvertedIndex(InvertedIndex):
     If index compression is enabled, only the posting lists are compressed. Dictionary
     compression is currently not supported.
     """
+    size = 0
 
     def __init__(
         self,
@@ -92,6 +93,7 @@ class InMemoryInvertedIndex(InvertedIndex):
         self._corpus = corpus
         self._normalizer = normalizer
         self._tokenizer = tokenizer
+        self._is_compressed = compressed
         self._posting_lists: List[PostingList] = []
         self._dictionary = InMemoryDictionary()
         self._build_index(fields, compressed)
@@ -135,6 +137,8 @@ class InMemoryInvertedIndex(InvertedIndex):
                 # Add to inverted index and posting list
                 term_id = self._add_to_dictionary(term)
                 self._append_to_posting_list(term_id, doc_id, freq, compressed)
+            
+        self._finalize_index()
 
     def _add_to_dictionary(self, term: str) -> int:
         """
@@ -179,7 +183,20 @@ class InMemoryInvertedIndex(InvertedIndex):
         implementations that need it with the chance to tie up any loose ends,
         if needed.
         """
-        pass
+        for posting_list in self._posting_lists:
+            posting_list.finalize_postings()
+        
+        if not self._is_compressed:
+            return
+
+        size = 0
+        for posting_list in self._posting_lists:
+            if isinstance(posting_list, CompressedInMemoryPostingList):
+                size +=  posting_list.length()
+        InMemoryInvertedIndex.size += size
+        print()
+        print(f"Inverted index size: {size:_}, Total size: {InMemoryInvertedIndex.size:_}")
+
 
     def get_terms(self, buffer: str) -> Iterator[str]:
         # In a serious large-scale application there could be field-specific tokenizers.
@@ -318,3 +335,5 @@ class AccessLoggedInvertedIndex(InvertedIndex):
         Returns the list of postings that clients have accessed so far.
         """
         return self._accesses
+    
+

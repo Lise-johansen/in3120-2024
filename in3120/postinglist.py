@@ -3,8 +3,10 @@
 
 from abc import ABC, abstractmethod
 from typing import Iterator, List
+from bitarray import bitarray
 from .posting import Posting
-from .variablebytecodec import VariableByteCodec
+from .variablebytecodec import VariableByteCodec, GammaCodec
+
 
 
 class PostingList(ABC):
@@ -93,17 +95,21 @@ class CompressedInMemoryPostingList(PostingList):
         appended to the byte array.
         """
 
-        def __init__(self, data: bytearray):
+        def __init__(self, data: bitarray):
             self.__data = data  # The buffer holding all the compressed posting data.
             self.__where = 0  # Our current position in the buffer.
             self.__document_id = 0  # We encoded the gaps, so accumulate them when decoding.
 
         def __next__(self) -> Posting:
             if self.__where < len(self.__data):
+
                 (gap, increment) = VariableByteCodec.decode(self.__data, self.__where)
+
                 self.__where += increment
+                
                 self.__document_id += gap
-                (term_frequency, increment) = VariableByteCodec.decode(self.__data, self.__where)
+                (term_frequency, increment) = GammaCodec.decode(self.__data, self.__where)
+
                 self.__where += increment
                 return Posting(self.__document_id, term_frequency)
             else:
@@ -112,7 +118,7 @@ class CompressedInMemoryPostingList(PostingList):
     def __init__(self):
         self.__logical_length = 0  # The number of posting entries encoded in the byte array.
         self.__previous_document_id = 0  # So that we can gap encode.
-        self.__data = bytearray()  # All posting entries, compressed.
+        self.__data = bitarray()  # All posting entries, compressed.
 
     def get_length(self) -> int:
         return self.__logical_length
@@ -123,10 +129,15 @@ class CompressedInMemoryPostingList(PostingList):
     def append_posting(self, posting: Posting) -> None:
         assert self.__logical_length == 0 or posting.document_id > self.__previous_document_id
         gap = posting.document_id - self.__previous_document_id
+
         VariableByteCodec.encode(gap, self.__data)
-        VariableByteCodec.encode(posting.term_frequency, self.__data)
+        GammaCodec.encode(posting.term_frequency, self.__data)
+
         self.__logical_length += 1
         self.__previous_document_id = posting.document_id
 
     def finalize_postings(self) -> None:
         pass
+    
+    def length(self):
+        return len(self.__data)
