@@ -7,6 +7,7 @@
 import unittest
 import tracemalloc
 import inspect
+import time
 from test_inmemoryinvertedindexwithoutcompression import TestInMemoryInvertedIndexWithoutCompression
 from context import in3120
 
@@ -52,9 +53,24 @@ class TestInMemoryInvertedIndexWithCompression(unittest.TestCase):
         print(f"Ratio:{compression_ratio}")
         self.assertGreater(compression_ratio, 13)
 
-    
-    
+    def test_compresstion_time(self):
+        corpus = in3120.InMemoryCorpus("../data/cran.xml")
 
+        start = time.perf_counter()
+        index_uncompressed = in3120.InMemoryInvertedIndex(corpus, ["body"], self._tester._normalizer, self._tester._tokenizer, False)
+        uncompressed_time = time.perf_counter() - start
+        self.assertIsNotNone(index_uncompressed)
+
+        start = time.perf_counter()
+        index_compressed = in3120.InMemoryInvertedIndex(corpus, ["body"], self._tester._normalizer, self._tester._tokenizer, True)
+        compressed_time = time.perf_counter() - start
+        self.assertIsNotNone(index_compressed)
+
+        time_ratio = uncompressed_time / compressed_time
+
+        print(f"time ratio:{time_ratio}")
+
+        self.assertLess(time_ratio, 1)
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
