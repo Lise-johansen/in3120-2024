@@ -17,7 +17,7 @@ from test_inmemoryinvertedindexwithcompression import TestInMemoryInvertedIndexW
 from test_inmemoryinvertedindexwithoutcompression import TestInMemoryInvertedIndexWithoutCompression
 from test_dummyinmemoryinvertedindex import TestDummyInMemoryInvertedIndex
 from test_inmemorypostinglist import TestInMemoryPostingList
-from test_naivebayesclassifier import TestNaiveBayesClassifier
+from test_naivebayesclassifier import TestNaiveBayesClassifier, TestNaiveBayesClassifierSteps
 from test_postingsmerger import TestPostingsMerger
 from test_shallowcaseextractor import TestShallowCaseExtractor
 from test_shinglegenerator import TestShingleGenerator
@@ -47,4 +47,3 @@ from test_unigramtokenizer import TestUnigramTokenizer
 from test_binarylogisticregressionclassifier import TestBinaryLogisticRegressionClassifier
 from test_evaluationmetrics import TestEvaluationMetrics
 from test_pagerank import TestPageRank
-from test_editsearchengine import TestIMadeThisDELME # DELME, I made this

@@ -49,21 +49,67 @@ class NaiveBayesClassifier:
         """
         Estimates all prior probabilities (or, rather, log-probabilities) needed for
         the naive Bayes classifier.
+
+        Compute the frequency of each category in the training set. Normalize to get the probability, 
+        then take the log to avoid underflow.
         """
-        raise NotImplementedError("You need to implement this as part of the obligatory assignment.")
+        total_doc = sum(map(len, training_set.values()))
+
+        for category, corpus in training_set.items():
+            prior = len(corpus) / total_doc
+            self.__priors[category] = math.log(prior)
 
     def __compute_vocabulary(self, training_set, fields) -> None:
         """
         Builds up the overall vocabulary as seen in the training set.
         """
-        raise NotImplementedError("You need to implement this as part of the obligatory assignment.")
+        #TODO: .get_field(filed) and .item() figure out
+
+        for category, corpus in training_set.items():
+            for document in corpus:
+                for field in fields:
+                    content = document.get_field(field, "")
+                    terms = self.__get_terms(content)
+                    for term in terms:
+                        self.__vocabulary.add_if_absent(term)
+
 
     def __compute_posteriors(self, training_set, fields) -> None:
         """
         Estimates all conditional probabilities (or, rather, log-probabilities) needed for
         the naive Bayes classifier.
+
+        P(language | term) = (P(term | language) * P(language)) / P(term) , where language = class, term = feature 
+
+        P(term | language) = (count(term in category) + 1) / (count(all terms in category) + |V|) , where |V| = vocabulary size
         """
-        raise NotImplementedError("You need to implement this as part of the obligatory assignment.")
+        term_counts_per_category = {}
+
+        # Step 1: Count term frequencies for each category and total terms per category
+        for category, corpus in training_set.items():
+                term_counts = Counter()
+                # total_terms = 0
+
+                for document in corpus:
+                    for field in fields:
+                        content = document.get_field(field, "")
+                        terms = self.__get_terms(content)
+                        term_counts.update(terms)
+                        # total_terms += len(list(terms))
+
+                # Store term counts and total terms
+                self.__denominators[category] = sum(term_counts.values()) + len(self.__vocabulary)
+                term_counts_per_category[category] = term_counts
+
+        # Step 2: Compute conditional probabilities P(term | language) with Laplace smoothing
+        for category, term_counts in term_counts_per_category.items():
+                self.__conditionals[category] = {}
+
+                for term, _ in self.__vocabulary:
+                    count = term_counts.get(term, 0) + 1  # Add-one smoothing (numerator)
+                    denominator = self.__denominators[category]  # Total terms + vocabulary size
+                    conditional_probability = count / denominator
+                    self.__conditionals[category][term] = math.log(conditional_probability)  # Store log-probability for stability
 
     def __get_terms(self, buffer) -> Iterator[str]:
         """
@@ -72,6 +118,7 @@ class NaiveBayesClassifier:
         we classify need to be identically processed.
         """
         tokens = self.__tokenizer.strings(self.__normalizer.canonicalize(buffer))
+
         return (self.__normalizer.normalize(t) for t in tokens)
 
     def get_prior(self, category: str) -> float:
@@ -88,7 +135,10 @@ class NaiveBayesClassifier:
 
         This is an internal detail having public visibility to facilitate testing.
         """
-        raise NotImplementedError("You need to implement this as part of the obligatory assignment.")
+        if term not in self.__vocabulary:
+            return math.log(1/self.__denominators[category])
+        return self.__conditionals[category].get(term, math.log(1/self.__denominators[category]))
+        
 
     def classify(self, buffer: str) -> Iterator[Dict[str, Any]]:
         """
@@ -99,4 +149,24 @@ class NaiveBayesClassifier:
         The results yielded back to the client are dictionaries having the keys "score" (float) and
         "category" (str).
         """
-        raise NotImplementedError("You need to implement this as part of the obligatory assignment.")
+        terms = list(self.__get_terms(buffer))
+        scores = {}
+                
+        # Calculate the log-probabilities for each category
+        for category in self.__priors:
+            score = self.get_prior(category)
+
+            for term in terms:
+                score += self.get_posterior(category, term)
+
+            scores[category] = score
+
+        # Sort the categories based on scores in descending order
+        sorted_scores = sorted(scores.items(), key=lambda item: item[1], reverse=True)
+        
+        # Yield the results with correct keys
+        for category, score in sorted_scores:
+            yield {"category": category, "score": score}
+
+    def get_vocabulary(self) -> set:
+        return set(term for term, _ in set(self.__vocabulary))

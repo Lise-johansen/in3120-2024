@@ -3,9 +3,10 @@
 # pylint: disable=missing-function-docstring
 # pylint: disable=line-too-long
 
-from typing import List
 import sys
 import unittest
+from typing import List
+
 import tests
 
 
@@ -19,9 +20,6 @@ def build_test_suite(test_cases: List[str]) -> unittest.TestSuite:
 def assignment_a_suite() -> unittest.TestSuite:
     return build_test_suite(["TestInMemoryInvertedIndexWithoutCompression",
                              "TestPostingsMerger", "TestBooleanSearchEngine"])
-
-def assignment_me_suite() -> unittest.TestSuite: # delme
-    return build_test_suite(["TestIMadeThisDELME" ])
 
 def assignment_b_1_suite() -> unittest.TestSuite:
     return build_test_suite(["TestSuffixArray", "TestTrie", "TestStringFinder"])
@@ -44,11 +42,14 @@ def assignment_d_1_suite() -> unittest.TestSuite:
 
 
 def assignment_d_2_suite() -> unittest.TestSuite:
-    return build_test_suite(["TestInMemoryInvertedIndexWithCompression", "TestCompressedInMemoryPostingList"])
+    return build_test_suite(["TestCompressedInMemoryPostingList", "TestInMemoryInvertedIndexWithCompression"])
+
 
 def assignment_e_1_suite() -> unittest.TestSuite:
-    return build_test_suite(["TestNaiveBayesClassifier"])
+    return build_test_suite(["TestShingleGenerator", "TestWordShingleGenerator", "TestNaiveBayesClassifier"])
 
+def assignment_e_1_maz_suite() -> unittest.TestSuite:
+    return build_test_suite(["TestNaiveBayesClassifierSteps"])
 
 def assignment_x_suite() -> unittest.TestSuite:
     return build_test_suite(["TestSimpleNormalizer", "TestDummyNormalizer",
@@ -68,7 +69,6 @@ def assignment_x_suite() -> unittest.TestSuite:
 def main():
     mappings = {
         "a":   assignment_a_suite,
-        "me": assignment_me_suite, # delme
         "b-1": assignment_b_1_suite,
         "b-2": assignment_b_2_suite,
         "c-1": assignment_c_1_suite,
@@ -76,6 +76,7 @@ def main():
         "d-1": assignment_d_1_suite,
         "d-2": assignment_d_2_suite,
         "e-1": assignment_e_1_suite,
+        "e-1-maz": assignment_e_1_maz_suite,
         "x":   assignment_x_suite,
     }
     targets = sys.argv[1:] or mappings.keys()
