@@ -194,8 +194,8 @@ class InMemoryInvertedIndex(InvertedIndex):
             if isinstance(posting_list, CompressedInMemoryPostingList):
                 size +=  posting_list.length()
         InMemoryInvertedIndex.size += size
-        print()
-        print(f"Inverted index size: {size:_}, Total size: {InMemoryInvertedIndex.size:_}")
+        # print()
+        # print(f"Inverted index size: {size:_}, Total size: {InMemoryInvertedIndex.size:_}")
 
 
     def get_terms(self, buffer: str) -> Iterator[str]:
