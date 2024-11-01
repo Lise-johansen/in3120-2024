@@ -94,27 +94,43 @@ class TestNaiveBayesClassifierSteps(unittest.TestCase):
         china.add_document(in3120.InMemoryDocument(0, {"body": "Chinese Beijing Chinese"}))
         china.add_document(in3120.InMemoryDocument(1, {"body": "Chinese Chinese Shanghai"}))
         china.add_document(in3120.InMemoryDocument(2, {"body": "Chinese Macao"}))
+        
         not_china = in3120.InMemoryCorpus()
         not_china.add_document(in3120.InMemoryDocument(0, {"body": "Tokyo Japan Chinese"}))
+        
         training_set = {"china": china, "not china": not_china}
         classifier = in3120.NaiveBayesClassifier(training_set, ["body"], self.__normalizer, self.__tokenizer)
+       
         self.assertAlmostEqual(classifier.get_prior("china"), math.log(3 / 4), 6)
         self.assertAlmostEqual(classifier.get_prior("not china"), math.log(1 / 4), 6)
 
     def test_vocabulary(self):
-        pass
+        china = in3120.InMemoryCorpus()
+        china.add_document(in3120.InMemoryDocument(0, {"body": "Chinese Beijing Chinese"}))
+        china.add_document(in3120.InMemoryDocument(1, {"body": "Chinese Chinese Shanghai"}))
+        china.add_document(in3120.InMemoryDocument(2, {"body": "Chinese Macao"}))
+        
+        not_china = in3120.InMemoryCorpus()
+        not_china.add_document(in3120.InMemoryDocument(0, {"body": "Tokyo Japan Chinese"}))
+       
+        training_set = {"china": china, "not china": not_china}
+        classifier = in3120.NaiveBayesClassifier(training_set, ["body"], self.__normalizer, self.__tokenizer)
+
+        self.assertSetEqual(classifier.get_vocabulary(), {"chinese", "beijing", "shanghai", "macao", "tokyo", "japan"})
+        
 
     def test_posteriors(self):
         china = in3120.InMemoryCorpus()
         china.add_document(in3120.InMemoryDocument(0, {"body": "Chinese Beijing Chinese"}))
         china.add_document(in3120.InMemoryDocument(1, {"body": "Chinese Chinese Shanghai"}))
         china.add_document(in3120.InMemoryDocument(2, {"body": "Chinese Macao"}))
+
         not_china = in3120.InMemoryCorpus()
         not_china.add_document(in3120.InMemoryDocument(0, {"body": "Tokyo Japan Chinese"}))
+
         training_set = {"china": china, "not china": not_china}
         classifier = in3120.NaiveBayesClassifier(training_set, ["body"], self.__normalizer, self.__tokenizer)
-        self.assertAlmostEqual(classifier.get_prior("china"), math.log(3 / 4), 6)
-        self.assertAlmostEqual(classifier.get_prior("not china"), math.log(1 / 4), 6)
+        
         self.assertAlmostEqual(classifier.get_posterior("china", "chinese"), math.log(3 / 7), 6)
         self.assertAlmostEqual(classifier.get_posterior("china", "tokyo"), math.log(1 / 14), 6)
         self.assertAlmostEqual(classifier.get_posterior("china", "japan"), math.log(1 / 14), 6)
@@ -127,11 +143,14 @@ class TestNaiveBayesClassifierSteps(unittest.TestCase):
         china.add_document(in3120.InMemoryDocument(0, {"body": "Chinese Beijing Chinese"}))
         china.add_document(in3120.InMemoryDocument(1, {"body": "Chinese Chinese Shanghai"}))
         china.add_document(in3120.InMemoryDocument(2, {"body": "Chinese Macao"}))
+
         not_china = in3120.InMemoryCorpus()
         not_china.add_document(in3120.InMemoryDocument(0, {"body": "Tokyo Japan Chinese"}))
+        
         training_set = {"china": china, "not china": not_china}
         classifier = in3120.NaiveBayesClassifier(training_set, ["body"], self.__normalizer, self.__tokenizer)
         results = list(classifier.classify("Chinese Chinese Chinese Tokyo Japan"))
+       
         self.assertEqual(len(results), 2)
         self.assertEqual(results[0]["category"], "china")
         self.assertAlmostEqual(math.exp(results[0]["score"]), 0.0003, 4)

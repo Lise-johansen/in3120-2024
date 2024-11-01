@@ -50,7 +50,7 @@ class TestInMemoryInvertedIndexWithCompression(unittest.TestCase):
                 size_compressed = statistic.size_diff
         compression_ratio = size_uncompressed / size_compressed
 
-        print(f"Ratio:{compression_ratio}")
+        # print(f"Ratio:{compression_ratio}")
         self.assertGreater(compression_ratio, 13)
 
     def test_compresstion_time(self):
@@ -68,7 +68,7 @@ class TestInMemoryInvertedIndexWithCompression(unittest.TestCase):
 
         time_ratio = uncompressed_time / compressed_time
 
-        print(f"time ratio:{time_ratio}")
+        # print(f"time ratio:{time_ratio}")
 
         self.assertLess(time_ratio, 1)
 
