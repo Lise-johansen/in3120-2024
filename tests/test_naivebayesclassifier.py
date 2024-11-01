@@ -116,7 +116,7 @@ class TestNaiveBayesClassifierSteps(unittest.TestCase):
         training_set = {"china": china, "not china": not_china}
         classifier = in3120.NaiveBayesClassifier(training_set, ["body"], self.__normalizer, self.__tokenizer)
 
-        self.assertSetEqual(classifier.get_vocabulary(), {"chinese", "beijing", "shanghai", "macao", "tokyo", "japan"})
+        self.assertSetEqual(classifier._get_vocabulary(), {"chinese", "beijing", "shanghai", "macao", "tokyo", "japan"})
         
 
     def test_posteriors(self):
