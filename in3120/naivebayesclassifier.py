@@ -63,8 +63,6 @@ class NaiveBayesClassifier:
         """
         Builds up the overall vocabulary as seen in the training set.
         """
-        #TODO: .get_field(filed) and .item() figure out
-
         for category, corpus in training_set.items():
             for document in corpus:
                 for field in fields:
@@ -85,29 +83,27 @@ class NaiveBayesClassifier:
         """
         term_counts_per_category = {}
 
-        # Step 1: Count term frequencies for each category and total terms per category
+        # Counting the terms per category
         for category, corpus in training_set.items():
                 term_counts = Counter()
-                # total_terms = 0
 
                 for document in corpus:
                     for field in fields:
                         content = document.get_field(field, "")
                         terms = self.__get_terms(content)
                         term_counts.update(terms)
-                        # total_terms += len(list(terms))
 
                 # Store term counts and total terms
                 self.__denominators[category] = sum(term_counts.values()) + len(self.__vocabulary)
                 term_counts_per_category[category] = term_counts
 
-        # Step 2: Compute conditional probabilities P(term | language) with Laplace smoothing
+        # Compute the conditional probabilities P(term | language)
         for category, term_counts in term_counts_per_category.items():
                 self.__conditionals[category] = {}
 
                 for term, _ in self.__vocabulary:
                     count = term_counts.get(term, 0) + 1  # Add-one smoothing (numerator)
-                    denominator = self.__denominators[category]  # Total terms + vocabulary size
+                    denominator = self.__denominators[category] 
                     conditional_probability = count / denominator
                     self.__conditionals[category][term] = math.log(conditional_probability)  # Store log-probability for stability
 
@@ -118,13 +114,11 @@ class NaiveBayesClassifier:
         we classify need to be identically processed.
         """
         tokens = self.__tokenizer.strings(self.__normalizer.canonicalize(buffer))
-
         return (self.__normalizer.normalize(t) for t in tokens)
 
     def get_prior(self, category: str) -> float:
         """
         Given a category c, returns the category's prior log-probability log(Pr(c)).
-
         This is an internal detail having public visibility to facilitate testing.
         """
         return self.__priors[category]
@@ -132,12 +126,11 @@ class NaiveBayesClassifier:
     def get_posterior(self, category: str, term: str) -> float:
         """
         Given a category c and a term t, returns the posterior log-probability log(Pr(t | c)).
-
         This is an internal detail having public visibility to facilitate testing.
         """
         if term not in self.__vocabulary:
             return math.log(1/self.__denominators[category])
-        return self.__conditionals[category].get(term, math.log(1/self.__denominators[category]))
+        return self.__conditionals[category][term]
         
 
     def classify(self, buffer: str) -> Iterator[Dict[str, Any]]:
@@ -152,7 +145,6 @@ class NaiveBayesClassifier:
         terms = list(self.__get_terms(buffer))
         scores = {}
                 
-        # Calculate the log-probabilities for each category
         for category in self.__priors:
             score = self.get_prior(category)
 
@@ -160,13 +152,15 @@ class NaiveBayesClassifier:
                 score += self.get_posterior(category, term)
 
             scores[category] = score
-
-        # Sort the categories based on scores in descending order
+            
+        # sort <category, score> pairs by score. biggest score first 
         sorted_scores = sorted(scores.items(), key=lambda item: item[1], reverse=True)
         
-        # Yield the results with correct keys
         for category, score in sorted_scores:
             yield {"category": category, "score": score}
 
-    def get_vocabulary(self) -> set:
+    def _get_vocabulary(self) -> set:
+        """
+        Use for testing. Made own tests for testing each function in the NaiveBayesClassifier class.
+        """
         return set(term for term, _ in set(self.__vocabulary))
